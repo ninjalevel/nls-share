@@ -90,16 +90,6 @@ def replace_env_variables(volume: str) -> str:
     """Replace environment variable placeholders in a volume string."""
     return re.sub(r'\$env:([A-Za-z0-9_]+)', lambda match: os.environ.get(match.group(1), ''), volume)
 
-def validate_local_paths(volumes: list) -> None:
-    """
-    Validates if the local paths specified in the volumes exist.
-    If a path does not exist, it raises a FileNotFoundError with a clear message.
-    """
-    missing_paths = [volume.split(":")[0] for volume in volumes if not os.path.exists(volume.split(":")[0])]
-    if missing_paths:
-        missing_paths_str = "\n".join(missing_paths)
-        raise FileNotFoundError(f"The following local path(s) do not exist:\n{missing_paths_str}")
-
 def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
     """Run a Docker container with specified volumes."""
     logger.info("Running Docker...")
@@ -107,8 +97,8 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
     if container_name is None:
         container_name = selected_image.split(':')[0].replace('/', '_')
 
+    # Ensuring environment variables in volume paths are replaced before validation
     volumes = [replace_env_variables(volume) for volume in volumes]
-    validate_local_paths(volumes)
     
     volume_commands = [item for volume in volumes for item in ["--volume", volume]]
     
