@@ -102,6 +102,8 @@ def replace_env_variables(volume: str) -> str:
     """
     return re.sub(r'\$env:([A-Za-z0-9_]+)', lambda match: os.environ.get(match.group(1), ''), volume)
 
+
+
 def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
     """Run a Docker container with specified volumes."""
     logger.info("Running Docker...")
@@ -129,7 +131,17 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
     else:
         logger.info("Docker command execution cancelled by user.")
 
-
+def check_local_volume_bindings(volume_bindings: list):
+    """
+    Checks if the local paths in volume bindings exist after replacing environment variables.
+    Raises FileNotFoundError if a path does not exist.
+    """
+    for binding in volume_bindings:
+        local_path = replace_env_variables(binding["local_path"])
+        if not os.path.exists(local_path):
+            logger.error(f"Local path does not exist: {local_path}")
+            raise FileNotFoundError(f"Local path does not exist: {local_path}")
+    
 if __name__ == "__main__":
     args = parse_cli_arguments()
     config = toml.load("atmos.toml")
@@ -143,7 +155,11 @@ if __name__ == "__main__":
     set_aws_environment_variables()
     
     volume_bindings = config["run_docker"]["volume_bindings"]
+    check_local_volume_bindings(volume_bindings)
+
+    
     volumes = [f'{binding["local_path"]}:{binding["container_path"]}' for binding in volume_bindings]
+    
     run_docker(volumes=volumes)
 
 
