@@ -113,7 +113,6 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
 
     # Ensuring environment variables in volume paths are replaced before validation
     volumes = [replace_env_variables(volume) for volume in volumes]
-    ic(volumes)
     volume_commands = [item for volume in volumes for item in ["--volume", volume]]
     
     docker_command = [
@@ -141,7 +140,9 @@ def check_local_volume_bindings(volume_bindings: list):
         if not os.path.exists(local_path):
             logger.error(f"Local path does not exist: {local_path}")
             raise FileNotFoundError(f"Local path does not exist: {local_path}")
-    
+        else:
+            logger.info(f"Local path verified: {local_path}")
+            
 if __name__ == "__main__":
     args = parse_cli_arguments()
     config = toml.load("atmos.toml")
