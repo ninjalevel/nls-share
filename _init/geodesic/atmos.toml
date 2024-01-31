@@ -1,9 +1,14 @@
-[run_docker]
-volume_bindings = [
-    {local_path: "$env:USERPROFILE", container_path: "/localhost"},
-    {local_path: "C:\\DHE\\git\\nls-infra\\root_git\\atmos\\AWS", container_path: "/_repotest"},
-]
+[[run_docker.volume_bindings]]
+local_path = "$env:USERPROFILE"
+container_path = "/localhost"
+
+[[run_docker.volume_bindings]]
+local_path = "C:\\DHE\\git\\nls-infra\\root_git\\atmos\\AWS"
+container_path = "/_repotest"
+
+
 
 [docker_manager]
 docker_file = 'dockerfile'
 image_name = 'geodesic-test-2024-01-25'
+
