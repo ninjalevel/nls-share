@@ -15,7 +15,6 @@ import toml
 from docker_manager_class import execute_docker_class
 
 
-
 # Logger configuration
 logger.add("debug.log", format="{time} {level} {message}", level="DEBUG")
 
@@ -88,13 +87,24 @@ def set_aws_environment_variables():
         raise
     
 def get_docker_images_with_prefix(prefix: str) -> list:
-    """Fetch Docker images that start with a given prefix."""
+    """Fetch Docker images that start with a given prefix and allow user to select an image with retries for wrong choices."""
     if not check_system_path_for_tool("docker"):
         raise Exception("Docker not found. Please install it.")
     logger.info("Fetching Docker images...")
     images = execute_subprocess(["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"]).split('\n')
-    return [image for image in images if image.startswith(prefix)]
-
+    filtered_images = [image for image in images if image.startswith(prefix)]
+    if not filtered_images:
+        raise Exception(f"No Docker images found with prefix '{prefix}'.")
+    
+    while True:
+        for i, item in enumerate(filtered_images):
+            print(f"{i+1}. {item}")
+        try:
+            selected = int(input("Select a Docker image by number: ")) - 1
+            return [filtered_images[selected]]  # Change made here to return a list instead of a string
+        except (ValueError, IndexError):
+            print("Invalid selection, please try again.")
+            
 def replace_env_variables(volume: str) -> str:
     """
     Replaces `$env:VAR_NAME` placeholders in the input string with the actual values of the corresponding 
@@ -102,9 +112,7 @@ def replace_env_variables(volume: str) -> str:
     """
     return re.sub(r'\$env:([A-Za-z0-9_]+)', lambda match: os.environ.get(match.group(1), ''), volume)
 
-
-
-def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
+def run_docker(volumes: list, container_name=None, image_prefix="geodesic", banner="NLS-Geodesic"):
     """Run a Docker container with specified volumes."""
     logger.info("Running Docker...")
     selected_image = select_from_list(get_docker_images_with_prefix(image_prefix), "Select a Docker image by number: ")
@@ -117,7 +125,7 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
     
     docker_command = [
         "docker", "run", "-it", "--rm", "--name", container_name,
-        "-e", "BANNER=NLS-Geodesic",  #TODO: MOVE THIS TO CONFIG
+        "-e", f"BANNER={banner}",  # Use banner variable
         "-e", "AWS_PROFILE=" + os.environ["AWS_PROFILE"], 
         "-e", "AWS_DEFAULT_REGION=" + os.environ["AWS_DEFAULT_REGION"]
     ] + volume_commands + [selected_image, "--login"]
@@ -145,22 +153,25 @@ def check_local_volume_bindings(volume_bindings: list):
             
 if __name__ == "__main__":
     args = parse_cli_arguments()
+    
+    # Import Config
     config = toml.load("atmos.toml")
     
+    # Set Variables from Config
     docker_file = config["docker_manager"]["docker_file"]
     image_name = config["docker_manager"]["image_name"]
-    # force_rebuild = True
+    image_prefix = config["docker_manager"]["image_prefix"]  # Set image_prefix variable
+    banner = config["environment"]["banner"]  # Set banner variable
     
-    execute_docker_class(docker_file, image_name,args.force_rebuild)
+    execute_docker_class(docker_file, image_name, args.force_rebuild)
     
     set_aws_environment_variables()
     
     volume_bindings = config["run_docker"]["volume_bindings"]
     check_local_volume_bindings(volume_bindings)
 
-    
     volumes = [f'{binding["local_path"]}:{binding["container_path"]}' for binding in volume_bindings]
     
-    run_docker(volumes=volumes)
-
+    # Pass image_prefix and banner to run_docker
+    run_docker(volumes=volumes, image_prefix=image_prefix, banner=banner)
 

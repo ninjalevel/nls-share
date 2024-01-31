@@ -1,6 +1,0 @@
-[run_docker]
-volumes = [
-    "$env:USERPROFILE:/localhost",
-    "C:\\DHE\\git\\nls-infra\\root\\Atmos\\AWS:/_repotest",
-]
-

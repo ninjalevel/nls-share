@@ -7,8 +7,10 @@ local_path = "C:\\DHE\\git\\nls-infra\\root_git\\atmos\\AWS"
 container_path = "/_repotest"
 
 
-
 [docker_manager]
+image_prefix = "geodesic"
 docker_file = 'dockerfile'
 image_name = 'geodesic-test-2024-01-25'
 
+[environment]
+banner = "NLS-Geodesic"
