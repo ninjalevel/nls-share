@@ -107,9 +107,10 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
     if container_name is None:
         container_name = selected_image.split(':')[0].replace('/', '_')
 
-    validate_local_paths(volumes)  # Add this line
+    volumes = [replace_env_variables(volume) for volume in volumes]
+    validate_local_paths(volumes)
     
-    volume_commands = [item for volume in volumes for item in ["--volume", replace_env_variables(volume)]]
+    volume_commands = [item for volume in volumes for item in ["--volume", volume]]
     
     docker_command = [
         "docker", "run", "-it", "--rm", "--name", container_name,
