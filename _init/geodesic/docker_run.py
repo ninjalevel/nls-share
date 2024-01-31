@@ -142,6 +142,8 @@ if __name__ == "__main__":
     
     set_aws_environment_variables()
     
-    run_docker(volumes=config["run_docker"]["volumes"])
+    volume_bindings = config["run_docker"]["volume_bindings"]
+    volumes = [f'{binding["local_path"]}:{binding["container_path"]}' for binding in volume_bindings]
+    run_docker(volumes=volumes)
 
 
