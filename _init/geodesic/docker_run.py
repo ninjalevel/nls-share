@@ -1,25 +1,34 @@
-import os
-import subprocess
-import shutil
-from loguru import logger
-import re
-import toml
-from docker_manager_class import execute_docker_class
+
+# Core library imports
 import argparse
+import os
+import re
+import shutil
+import subprocess
+
+# Third-party library imports
+from icecream import ic  # type: ignore
+from loguru import logger
+import toml
+
+# Local imports
+from docker_manager_class import execute_docker_class
+
+
 
 # Logger configuration
 logger.add("debug.log", format="{time} {level} {message}", level="DEBUG")
 
-def parse_arguments():
+def parse_cli_arguments():
     parser = argparse.ArgumentParser(description='Run Docker Manager.')
     parser.add_argument('--force-rebuild', action='store_true', help='Force a full rebuild of the Docker image.')
     return parser.parse_args()
 
-def check_tool_availability(tool_name: str) -> bool:
-    """Check the availability of a given tool. Currently checks for 'aws cli' and 'docker cli'."""
-    logger.info(f"Checking for {tool_name}...")
+def check_system_path_for_tool(tool_name: str) -> bool:
+    """Verifies if a specified tool is installed and accessible in the system's PATH."""
+    logger.info(f"Verifying accessibility of {tool_name} in system PATH...")
     result = shutil.which(tool_name) is not None
-    logger.info(f"{tool_name} found.") if result else logger.error(f"{tool_name} not found.")
+    logger.info(f"{tool_name} is accessible.") if result else logger.error(f"{tool_name} is not accessible in system PATH.")
     return result
 
 def execute_subprocess(command: list) -> str:
@@ -36,7 +45,7 @@ def execute_subprocess(command: list) -> str:
 
 def get_aws_profiles() -> list:
     """Get a list of AWS profiles."""
-    if not check_tool_availability("aws"):
+    if not check_system_path_for_tool("aws"):
         raise Exception("AWS CLI not found. Please install it.")
     logger.info("Fetching AWS profiles...")
     profiles = execute_subprocess(["aws", "configure", "list-profiles"]).replace('\r\n', '\n').split('\n')
@@ -80,14 +89,17 @@ def set_aws_environment_variables():
     
 def get_docker_images_with_prefix(prefix: str) -> list:
     """Fetch Docker images that start with a given prefix."""
-    if not check_tool_availability("docker"):
+    if not check_system_path_for_tool("docker"):
         raise Exception("Docker not found. Please install it.")
     logger.info("Fetching Docker images...")
     images = execute_subprocess(["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"]).split('\n')
     return [image for image in images if image.startswith(prefix)]
 
 def replace_env_variables(volume: str) -> str:
-    """Replace environment variable placeholders in a volume string."""
+    """
+    Replaces `$env:VAR_NAME` placeholders in the input string with the actual values of the corresponding 
+    environment variables. 
+    """
     return re.sub(r'\$env:([A-Za-z0-9_]+)', lambda match: os.environ.get(match.group(1), ''), volume)
 
 def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
@@ -99,7 +111,7 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
 
     # Ensuring environment variables in volume paths are replaced before validation
     volumes = [replace_env_variables(volume) for volume in volumes]
-    
+    ic(volumes)
     volume_commands = [item for volume in volumes for item in ["--volume", volume]]
     
     docker_command = [
@@ -119,7 +131,7 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic"):
 
 
 if __name__ == "__main__":
-    args = parse_arguments()
+    args = parse_cli_arguments()
     config = toml.load("atmos.toml")
     
     docker_file = config["docker_manager"]["docker_file"]

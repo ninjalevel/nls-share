@@ -1,7 +1,7 @@
 [run_docker]
-volumes = [
-    "$env:USERPROFILE:/localhost",
-    "C:\\DHE\\git\\nls-infra\\root_git\\atmos\\AWS:/_repotest",
+volume_bindings = [
+    {local_path: "$env:USERPROFILE", container_path: "/localhost"},
+    {local_path: "C:\\DHE\\git\\nls-infra\\root_git\\atmos\\AWS", container_path: "/_repotest"},
 ]
 
 [docker_manager]
