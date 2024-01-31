@@ -72,19 +72,20 @@ class DockerManager:
             logger.error(f"Error in checking Dockerfile change: {e}")
             return True  # Assume change if there's an error reading the files
 
-
 def execute_docker_class(docker_file, image_name, force_rebuild=False):
+    """Executes Docker build management."""
     docker_manager = DockerManager(docker_file, force_rebuild)
     docker_manager.manage_docker_build(image_name)
     
 def run_docker_manager(config):
+    """Runs the Docker manager with configuration."""
     docker_file = config["docker_manager"]["docker_file"]
     image_name = config["docker_manager"]["image_name"]
     execute_docker_class(docker_file, image_name)
 
 
 if __name__ == "__main__":
-    config = toml.load("atmos2.toml")
+    config = toml.load("atmos.toml")
     force_rebuild = False
     docker_file = config["docker_manager"]["docker_file"]
     image_name = config["docker_manager"]["image_name"]
