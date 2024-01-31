@@ -1,0 +1,9 @@
+[run_docker]
+volumes = [
+    "$env:USERPROFILE:/localhost",
+    "C:\\DHE\\git\\nls-infra\\root\\Atmos2\\AWS:/_repotest",
+]
+
+[docker_manager]
+docker_file = 'dockerfile'
+image_name = 'geodesic-test-2024-01-25'

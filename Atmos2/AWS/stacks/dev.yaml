@@ -1,0 +1,16 @@
+vars:
+  stage: dev
+  region: ca-central-1
+
+# Import the component default configurations
+import:
+- defaults/vpc
+
+components:
+  terraform:
+    # Customize the `vpc` component for the `dev` account
+    # You can define variables or override the imported defaults
+    vpc:
+      vars:
+        max_subnet_count: 1
+        vpc_flow_logs_enabled: false

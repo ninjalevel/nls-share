@@ -1,0 +1,14 @@
+docker build -t geodesic-test-image .
+
+
+export OPENAI_API_KEY=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
+export ATMOS_CLI_CONFIG_PATH=/_repotest/
+export ATMOS_BASE_PATH=/_repotest/
+ATMOS_STACKS_NAME_PATTERN = 
+
+
+echo $OPENAI_API_KEY
+echo $ATMOS_CLI_CONFIG_PATH
+echo $ATMOS_BASE_PATH
+
+ATMOS_STACKS_NAME_PATTERN

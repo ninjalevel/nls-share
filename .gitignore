@@ -1,0 +1,15 @@
+.aider*
+**/_archive/
+
+# VSCode
+**/.vscode/
+**/*.code-workspace
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/terraform.tfvars
+**/.terraform.lock.hcl
+
+

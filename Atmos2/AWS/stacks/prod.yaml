@@ -1,0 +1,15 @@
+vars:
+  stage: prod
+  region: ca-central-1
+# Import the component default configurations
+import:
+- defaults/vpc-flow-logs-bucket
+- defaults/vpc
+
+components:
+  terraform:
+    # Customize the `vpc` component for the `prod` account
+    # You can define variables or override the imported defaults
+    vpc:
+      vars:
+        map_public_ip_on_launch: false

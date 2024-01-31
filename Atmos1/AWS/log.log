@@ -1,0 +1,19 @@
+Found config for the component 'vpc' for the stack 'dev' in the stack config file 'dev'
+
+Variables for the component 'vpc' in the stack 'dev':
+Writing the variables to file:
+components/terraform/vpc/dev-vpc.terraform.tfvars.json
+
+Command info:
+Terraform binary: terraform
+Terraform command: apply
+Arguments and flags: [-auto-approve]
+Component: vpc
+Stack: dev
+Working dir: components/terraform/vpc
+
+Executing command:
+/usr/bin/terraform workspace select dev
+
+Executing command:
+/usr/bin/terraform apply -var-file dev-vpc.terraform.tfvars.json -auto-approve
