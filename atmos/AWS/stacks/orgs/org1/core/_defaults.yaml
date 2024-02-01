@@ -1,0 +1,3 @@
+import:
+  - orgs/org1/_defaults
+  - mixins/tenant/core

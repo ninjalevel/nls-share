@@ -1,3 +1,0 @@
-# ---- stacks\orgs\dhe\_defaults.yaml
-vars:
-  namespace: nls # namespace is AWS Organization

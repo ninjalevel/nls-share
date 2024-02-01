@@ -1,0 +1,9 @@
+import:
+  # All accounts (stages) in `us-east-2` region will have the `vpc-flow-logs-bucket` component
+  - catalog/vpc-flow-logs-bucket/defaults
+
+
+vars:
+  region: us-east-2
+  environment: ue2
+

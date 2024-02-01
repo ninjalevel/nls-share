@@ -1,4 +1,0 @@
-# ---- stacks\orgs\dhe\management\_defaults.yaml -----------------------------
-import:
-  - orgs/nls/_defaults
-  - mixins/tenant/management

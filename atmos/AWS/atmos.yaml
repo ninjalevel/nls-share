@@ -33,7 +33,6 @@ stacks:
   # If you are using a single organization (namespace), use the following `name_pattern`:
   # name_pattern: "{tenant}-{environment}-{stage}"
 
-
 logs:
   file: "/dev/stdout"
   # Supported log levels: Trace, Debug, Info, Warning, Off
