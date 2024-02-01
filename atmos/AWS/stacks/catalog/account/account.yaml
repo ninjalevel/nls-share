@@ -1,0 +1,71 @@
+# ---- stacks\orgs\dhe\management\_defaults.yaml -----------------------------
+import:
+  - orgs/nls/_defaults
+
+components:
+  terraform:
+    account:
+      settings:
+        spacelift:
+          workspace_enabled: false
+      backend:
+        s3:
+          role_arn: null
+      vars:
+        enabled: true
+        account_email_format: dave+%s@ninjalevel.io
+        account_iam_user_access_to_billing: ALLOW
+        organization_enabled: true
+        aws_service_access_principals:
+          - cloudtrail.amazonaws.com
+          - guardduty.amazonaws.com
+          - ipam.amazonaws.com
+          - ram.amazonaws.com
+          - securityhub.amazonaws.com
+          - servicequotas.amazonaws.com
+          - sso.amazonaws.com
+          - securityhub.amazonaws.com
+          - auditmanager.amazonaws.com
+        enabled_policy_types:
+          - SERVICE_CONTROL_POLICY
+          - TAG_POLICY
+        organization_config:
+          root_account:
+            name: management-root # name of yaml section, not account name
+            stage: root # stage = account
+            tenant: management # tenant = OU
+            # tags:
+            #   eks: false
+          accounts: []
+          organization:
+            service_control_policies:
+              - DenyEC2InstancesWithoutEncryptionInTransit
+          organizational_units:
+            - name: management
+              accounts:
+                - name: management-network # name of yaml section, not account name
+                  tenant: management # tenant = OU
+                  stage: network # stage = account
+                  # tags:
+                  #   eks: false
+              service_control_policies:
+                - DenyLeavingOrganization
+            - name: operations
+              accounts:
+                - name: operations-prod # name of yaml section, not account name
+                  tenant: operations # tenant = OU
+                  stage: prod # stage = account
+                  # tags:
+                  #   eks: true
+              service_control_policies:
+                - DenyLeavingOrganization
+        service_control_policies_config_paths:
+          # These paths specify where to find the service control policies identified by SID in the service_control_policies sections above.
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/cloudwatch-logs-policies.yaml"
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/deny-all-policies.yaml"
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/iam-policies.yaml"
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/kms-policies.yaml"
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/organization-policies.yaml"
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/route53-policies.yaml"
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/s3-policies.yaml"
+          - "https://raw.githubusercontent.com/cloudposse/terraform-aws-service-control-policies/0.12.0/catalog/ec2-policies.yaml"

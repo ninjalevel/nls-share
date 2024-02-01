@@ -22,12 +22,16 @@ components:
 
 stacks:
   base_path: "stacks"
-  name_pattern: "{stage}"
   included_paths:
-  - "*"
+    # Tell Atmos to search for the top-level stack manifests in the `orgs` folder and its sub-folders
+    - "orgs/**/*"
   excluded_paths:
-    # Tell Atmos that the `defaults` folder and all sub-folders don't contain top-level stack manifests
-    - "defaults/**/*"
+    # Tell Atmos that all `_defaults.yaml` files are not top-level stack manifests
+    - "**/_defaults.yaml"
+  # If you are using multiple organizations (namespaces), use the following `name_pattern`:
+  name_pattern: "{namespace}-{tenant}-{environment}-{stage}"
+  # If you are using a single organization (namespace), use the following `name_pattern`:
+  # name_pattern: "{tenant}-{environment}-{stage}"
 
 
 logs:
@@ -43,3 +47,9 @@ schemas:
     base_path: "stacks/schemas/opa"
   atmos:
     manifest: "stacks/schemas/atmos/atmos-manifest/1.0/atmos-manifest.json"
+
+# commands:
+#   - name: hello
+#     description: This command says Hello world
+#     steps:
+#       - "echo Hello world!"

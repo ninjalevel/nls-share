@@ -27,11 +27,6 @@ variable "availability_zone_ids" {
     EOT
   default     = []
 }
-variable "dns_hostnames_enabled" {
-  type        = bool
-  description = "Set `true` to enable [DNS hostnames](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-hostnames) in the VPC"
-  default     = true
-}
 
 variable "ipv4_primary_cidr_block" {
   type        = string

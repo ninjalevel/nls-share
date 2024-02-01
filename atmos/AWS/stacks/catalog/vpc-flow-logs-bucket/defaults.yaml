@@ -6,7 +6,7 @@ components:
         component: vpc-flow-logs-bucket
       vars:
         enabled: true
-        name: "vpc-bucket-fuck-it"
+        name: "vpc-flow-logs"
         traffic_type: "ALL"
         force_destroy: true
         lifecycle_rule_enabled: false
