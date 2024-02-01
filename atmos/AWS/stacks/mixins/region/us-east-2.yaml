@@ -1,9 +1,13 @@
+# ---- stacks/mixins/region/us-east-2.yaml
+
 import:
   # All accounts (stages) in `us-east-2` region will have the `vpc-flow-logs-bucket` component
   - catalog/vpc-flow-logs-bucket/defaults
-
+  # All accounts (stages) in `us-east-2` region will have the `vpc` component
+  - catalog/vpc/defaults
 
 vars:
   region: us-east-2
   environment: ue2
 
+# Other defaults for the `us-east-2` region

@@ -1,3 +1,5 @@
+# ---- stacks/mixins/tenant/core.yaml
+
 vars:
   tenant: core
 

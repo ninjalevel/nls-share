@@ -1,3 +1,4 @@
+# ---- stacks/orgs/org1/plat/prod/_defaults.yaml
 import:
   - orgs/org1/plat/_defaults
   - mixins/stage/prod

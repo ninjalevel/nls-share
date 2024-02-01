@@ -1,0 +1,41 @@
+   │   # Centralized stacks configuration (stack manifests)
+   ├── stacks
+   │   ├── catalog  # component-specific defaults
+   │   │   ├── vpc-flow-logs-bucket
+   │   │   │   └── defaults.yaml
+   │   │   └── vpc
+   │   │       └── defaults.yaml
+   │   ├── mixins
+   │   │   ├── tenant  # tenant-specific defaults
+   │   │   │   ├── core.yaml
+   │   │   │   └── plat.yaml
+   │   │   ├── region  # region-specific defaults
+   │   │   │   ├── global-region.yaml
+   │   │   │   ├── us-east-2.yaml
+   │   │   └── stage  # stage-specific defaults
+   │   │       ├── root.yaml
+   │   │       └── prod.yaml
+   │   └── orgs  # Organizations
+   │       ├── org1
+   │       │   ├── _defaults.yaml
+   │       │   ├── core  # 'core' represents the "Core" OU (a.k.a tenant)
+   │       │   │   ├── _defaults.yaml
+   │       │   │   └── root
+   │       │   │       ├── _defaults.yaml
+   │       │   │       ├── global-region.yaml
+   │       │   │       ├── us-east-2.yaml
+   │       │   │       └── us-west-2.yaml
+   │       │   └── plat  # 'plat' represents the "Platform" OU (a.k.a tenant)
+   │       │       ├── _defaults.yaml
+   │       │       └── prod
+   │       │           ├── _defaults.yaml
+   │       │           ├── global-region.yaml
+   │       │           ├── us-east-2.yaml
+   │       │           └── us-west-2.yaml
+   │  
+   │   # Centralized components configuration
+   └── components
+       └── terraform  # Terraform components (a.k.a Terraform "root" modules)
+           ├── vpc
+           ├── vpc-flow-logs-bucket
+           ├── < other components >

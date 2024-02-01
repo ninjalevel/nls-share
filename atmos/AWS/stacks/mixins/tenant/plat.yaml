@@ -1,2 +1,6 @@
+# ---- stacks/mixins/tenant/plat.yaml
+
 vars:
-  tenant: plat
+  tenant: plat 
+
+# Other defaults for the `plat` tenant/OU

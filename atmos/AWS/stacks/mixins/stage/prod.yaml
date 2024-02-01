@@ -1,3 +1,4 @@
+# -----stacks/mixins/stage/prod.yaml
 vars:
   stage: prod
 

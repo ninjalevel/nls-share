@@ -1,3 +1,5 @@
+# ---- stacks/catalog/vpc-flow-logs-bucket/defaults.yaml
+
 components:
   terraform:
     vpc-flow-logs-bucket:

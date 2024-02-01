@@ -34,12 +34,10 @@ stacks:
   # name_pattern: "{tenant}-{environment}-{stage}"
 
 logs:
-  file: "/dev/stdout"
-  # Supported log levels: Trace, Debug, Info, Warning, Off
-  level: Info
   verbose: true
+  colors: true
 
-schemas:
+
   jsonschema:
     base_path: "stacks/schemas/jsonschema"
   opa:
