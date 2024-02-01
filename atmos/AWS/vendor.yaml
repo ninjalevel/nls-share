@@ -13,6 +13,7 @@ spec:
     # and all URL and archive formats as described in https://github.com/hashicorp/go-getter.
     # In 'source', Golang templates are supported  https://pkg.go.dev/text/template.
     # If 'version' is provided, '{{.Version}}' will be replaced with the 'version' value before pulling the files from 'source'.
+    
     - component: "vpc"
       source: "github.com/cloudposse/terraform-aws-components.git//modules/vpc?ref={{.Version}}"
       version: "1.388.0"
@@ -32,6 +33,7 @@ spec:
       # Refer to https://atmos.tools/cli/commands/vendor/pull
       tags:
         - networking
+
     - component: "vpc-flow-logs-bucket"
       source: "github.com/cloudposse/terraform-aws-components.git//modules/vpc-flow-logs-bucket?ref={{.Version}}"
       version: "1.388.0"
