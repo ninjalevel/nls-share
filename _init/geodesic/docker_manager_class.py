@@ -13,36 +13,38 @@ import toml
 import json
 
 
-import docker_manager_class
 
 class DockerManager:
     """Class to manage Docker operations including building images and tracking changes in Dockerfiles."""
 
-    def __init__(self, docker_file, force_rebuild=False):
-        """Initialize with the Dockerfile and its corresponding hash file path."""
+    def __init__(self, docker_file, image_name, force_rebuild=False, env_vars=None):
+        """Initialize with the Dockerfile, image name, force rebuild flag, and environment variables."""
         self.docker_file = docker_file
-        self.hash_file = f"{docker_file}_hash"
+        self.image_name = image_name
         self.force_rebuild = force_rebuild
+        self.env_vars = env_vars or {}
+        self.hash_file = f"{docker_file}_hash"
 
-
-    def manage_docker_build(self, image_name):
+    def manage_docker_build(self):
         """Manages the Docker build process based on the existence and comparison of Dockerfile hashes."""
         if self.has_dockerfile_changed() or self.force_rebuild:
             logger.info("Building or rebuilding Docker image.")
-            self.build_docker_image(image_name)
+            self.build_docker_image()
             self.create_dockerfile_hash()
         else:
             logger.info("No changes detected in Dockerfile. No action needed.")
 
-
-            
-    def build_docker_image(self, image_name):
-        """Builds a Docker image from the initialized Dockerfile."""
+    def build_docker_image(self):
+        """Builds a Docker image from the initialized Dockerfile, including environment variables."""
         logger.info("Building Docker image...")
         try:
-            build_command = ['docker', 'build', '-f', self.docker_file, '-t', image_name, '.']
+            build_command = ['docker', 'build', '-f', self.docker_file, '-t', self.image_name]
+            # Include environment variables as build-args
+            for key, value in self.env_vars.items():
+                build_command.extend(['--build-arg', f'{key}={value}'])
             if self.force_rebuild:
-                build_command.insert(2, '--no-cache')
+                build_command.append('--no-cache')
+            build_command.append('.')
             subprocess.run(build_command, check=True)
             logger.success("Docker image built successfully.")
         except subprocess.CalledProcessError as e:
@@ -76,10 +78,10 @@ class DockerManager:
             return True  # Assume change if there's an error reading the files
 
 
-def execute_docker_class(docker_file, image_name, force_rebuild=False):
-    """Executes Docker build management. REPLACED!!!!"""
-    docker_manager = DockerManager(docker_file, force_rebuild)
-    docker_manager.manage_docker_build(image_name)
+def execute_docker_class(docker_file, image_name, force_rebuild=False, env_vars=None):
+    """Executes Docker build management with environment variables."""
+    docker_manager = DockerManager(docker_file, image_name, force_rebuild, env_vars)
+    docker_manager.manage_docker_build()
     
 def run_docker_manager(config):
     """Runs the Docker manager with configuration."""

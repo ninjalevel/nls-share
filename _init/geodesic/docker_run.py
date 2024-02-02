@@ -126,12 +126,11 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic", bann
 
     docker_command = [
         "docker", "run", "-it", "--rm", "--name", container_name,
+        "--env-file", "atmos.env.list",  # Add env file set to atmos.env.list
         "-e", f"BANNER={banner}",  # Use banner variable
         "-e", "AWS_PROFILE=" + os.environ["AWS_PROFILE"],
         "-e", "AWS_DEFAULT_REGION=" + os.environ["AWS_DEFAULT_REGION"]
     ] + volume_commands + [selected_image, "--login"]
-    # ] + volume_commands + [selected_image, "/bin/bash", "--login"]
-
     logger.info("Executing Docker command: " + ' '.join(docker_command))
     confirmation = input("Press Enter to run the Docker command or type 'no' to cancel: ").lower()
     if not confirmation or confirmation == "yes":
@@ -178,4 +177,3 @@ if __name__ == "__main__":
 
     # Pass image_prefix and banner to run_docker
     run_docker(volumes=volumes, image_prefix=image_prefix, banner=banner)
-login
