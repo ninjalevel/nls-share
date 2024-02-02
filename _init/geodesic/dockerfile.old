@@ -3,18 +3,20 @@ ARG OS=debian
 FROM cloudposse/geodesic:latest-debian
 # FROM cloudposse/geodesic:$VERSION-$OS
 
-# https://go.dev/dl/
-ARG GO_VERSION=1.21.6
-# https://github.com/cloudposse/atmos/releases
-ARG ATMOS_VERSION=v1.56.1
-
 # Install prerequisites
 RUN apt-get update
-RUN apt-get install -y jq
 RUN apt-get install -y wget
+
 # System: Set TimeZone
 RUN sudo ln -sf /usr/share/zoneinfo/America/Denver /etc/localtime
 
+
+# ---- Set Versions
+# https://go.dev/dl/
+ARG GO_VERSION=1.21.6
+
+# https://github.com/cloudposse/atmos/releases
+ARG ATMOS_VERSION=v1.56.1
 
 # ---- Install Go
 # Install Go
@@ -27,8 +29,11 @@ ENV GOROOT /usr/local/go
 ENV GOPATH /root/go
 ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
 
-# Install Atmos
-RUN apt-get install atmos
+# ---- Install Atmos
+
+RUN go install github.com/cloudposse/atmos@${ATMOS_VERSION}
+
+RUN go install github.com/gofireflyio/aiac/v4@latest
 
 # Install Atmos completion commands
 RUN atmos completion bash
@@ -45,5 +50,3 @@ ENV AWS_PROFILE=${AWS_PROFILE:-"default-profile"}
 # Step 3: Set the AWS_DEFAULT_REGION by adding a new line: ENV AWS_DEFAULT_REGION="your-region"
 ARG AWS_DEFAULT_REGION
 ENV AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"default-region"}
-
-WORKDIR /

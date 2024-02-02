@@ -1,3 +1,10 @@
+[environment_variables]
+ATMOS_LOGS_LEVEL = "Trace"
+ATMOS_BASE_PATH = "/_repotest/"
+ATMOS_CLI_CONFIG_PATH="/_repotest/"
+
+
+
 [[run_docker.volume_bindings]]
 local_path = "$env:USERPROFILE"
 container_path = "/localhost"
@@ -14,3 +21,4 @@ image_name = 'geodesic-test-2024-01-25'
 
 [environment]
 banner = "NLS-Geodesic"
+

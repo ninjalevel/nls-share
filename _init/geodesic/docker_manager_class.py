@@ -10,6 +10,7 @@ import subprocess
 from loguru import logger
 import os
 import toml
+import json
 
 
 import docker_manager_class
@@ -23,6 +24,7 @@ class DockerManager:
         self.hash_file = f"{docker_file}_hash"
         self.force_rebuild = force_rebuild
 
+
     def manage_docker_build(self, image_name):
         """Manages the Docker build process based on the existence and comparison of Dockerfile hashes."""
         if self.has_dockerfile_changed() or self.force_rebuild:
@@ -33,6 +35,7 @@ class DockerManager:
             logger.info("No changes detected in Dockerfile. No action needed.")
 
 
+            
     def build_docker_image(self, image_name):
         """Builds a Docker image from the initialized Dockerfile."""
         logger.info("Building Docker image...")
@@ -72,8 +75,9 @@ class DockerManager:
             logger.error(f"Error in checking Dockerfile change: {e}")
             return True  # Assume change if there's an error reading the files
 
+
 def execute_docker_class(docker_file, image_name, force_rebuild=False):
-    """Executes Docker build management."""
+    """Executes Docker build management. REPLACED!!!!"""
     docker_manager = DockerManager(docker_file, force_rebuild)
     docker_manager.manage_docker_build(image_name)
     

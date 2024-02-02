@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import subprocess
+import json
 
 # Third-party library imports
 from icecream import ic  # type: ignore
@@ -34,10 +35,10 @@ def execute_subprocess(command: list) -> str:
     """
     Runs a command in the shell and gives back the result.
 
-    The function takes a list that forms a shell command. For instance, ["aws", "configure", "list-profiles"] 
+    The function takes a list that forms a shell command. For instance, ["aws", "configure", "list-profiles"]
     would list all AWS profiles.
 
-    It runs the command and waits for it to finish. The output is then cleaned up (extra spaces removed) and 
+    It runs the command and waits for it to finish. The output is then cleaned up (extra spaces removed) and
     returned as a string.
     """
     return subprocess.check_output(command).decode().strip()
@@ -85,7 +86,7 @@ def set_aws_environment_variables():
     except subprocess.CalledProcessError:
         logger.error(f"AWS profile {aws_profile} is not active. Please check its configuration.")
         raise
-    
+
 def get_docker_images_with_prefix(prefix: str) -> list:
     """Fetch Docker images that start with a given prefix and allow user to select an image with retries for wrong choices."""
     if not check_system_path_for_tool("docker"):
@@ -95,7 +96,7 @@ def get_docker_images_with_prefix(prefix: str) -> list:
     filtered_images = [image for image in images if image.startswith(prefix)]
     if not filtered_images:
         raise Exception(f"No Docker images found with prefix '{prefix}'.")
-    
+
     while True:
         for i, item in enumerate(filtered_images):
             print(f"{i+1}. {item}")
@@ -104,11 +105,11 @@ def get_docker_images_with_prefix(prefix: str) -> list:
             return [filtered_images[selected]]  # Change made here to return a list instead of a string
         except (ValueError, IndexError):
             print("Invalid selection, please try again.")
-            
-def replace_env_variables(volume: str) -> str:
+
+def replace_local_env_variables_win(volume: str) -> str:
     """
-    Replaces `$env:VAR_NAME` placeholders in the input string with the actual values of the corresponding 
-    environment variables. 
+    Replaces `$env:VAR_NAME` placeholders in the input string with the actual values of the corresponding
+    environment variables for windows machines.
     """
     return re.sub(r'\$env:([A-Za-z0-9_]+)', lambda match: os.environ.get(match.group(1), ''), volume)
 
@@ -120,15 +121,16 @@ def run_docker(volumes: list, container_name=None, image_prefix="geodesic", bann
         container_name = selected_image.split(':')[0].replace('/', '_')
 
     # Ensuring environment variables in volume paths are replaced before validation
-    volumes = [replace_env_variables(volume) for volume in volumes]
+    volumes = [replace_local_env_variables_win(volume) for volume in volumes]
     volume_commands = [item for volume in volumes for item in ["--volume", volume]]
-    
+
     docker_command = [
         "docker", "run", "-it", "--rm", "--name", container_name,
         "-e", f"BANNER={banner}",  # Use banner variable
-        "-e", "AWS_PROFILE=" + os.environ["AWS_PROFILE"], 
+        "-e", "AWS_PROFILE=" + os.environ["AWS_PROFILE"],
         "-e", "AWS_DEFAULT_REGION=" + os.environ["AWS_DEFAULT_REGION"]
     ] + volume_commands + [selected_image, "--login"]
+    # ] + volume_commands + [selected_image, "/bin/bash", "--login"]
 
     logger.info("Executing Docker command: " + ' '.join(docker_command))
     confirmation = input("Press Enter to run the Docker command or type 'no' to cancel: ").lower()
@@ -144,34 +146,36 @@ def check_local_volume_bindings(volume_bindings: list):
     Raises FileNotFoundError if a path does not exist.
     """
     for binding in volume_bindings:
-        local_path = replace_env_variables(binding["local_path"])
+        local_path = replace_local_env_variables_win(binding["local_path"])
         if not os.path.exists(local_path):
             logger.error(f"Local path does not exist: {local_path}")
             raise FileNotFoundError(f"Local path does not exist: {local_path}")
         else:
             logger.info(f"Local path verified: {local_path}")
-            
+
 if __name__ == "__main__":
     args = parse_cli_arguments()
-    
+
     # Import Config
     config = toml.load("atmos.toml")
-    
+
     # Set Variables from Config
     docker_file = config["docker_manager"]["docker_file"]
     image_name = config["docker_manager"]["image_name"]
     image_prefix = config["docker_manager"]["image_prefix"]  # Set image_prefix variable
     banner = config["environment"]["banner"]  # Set banner variable
-    
-    execute_docker_class(docker_file, image_name, args.force_rebuild)
-    
+    env_vars = config.get("environment_variables", {})  # Extract environment variables from config
+
+    execute_docker_class(docker_file, image_name)
+    # execute_docker_class(docker_file, image_name, env_vars)
+
     set_aws_environment_variables()
-    
+
     volume_bindings = config["run_docker"]["volume_bindings"]
     check_local_volume_bindings(volume_bindings)
 
     volumes = [f'{binding["local_path"]}:{binding["container_path"]}' for binding in volume_bindings]
-    
+
     # Pass image_prefix and banner to run_docker
     run_docker(volumes=volumes, image_prefix=image_prefix, banner=banner)
-
+login
