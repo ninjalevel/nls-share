@@ -10,7 +10,7 @@ function Create-DirectoryStructure {
     foreach ($path in $paths) {
         $fullPath = Join-Path $basePath $path
         if (-not (Test-Path $fullPath)) {
-            $type = if ($path -match "\.yaml$") { "file" } else { "directory" }
+            $type = if ($path -match "\.[^\\]*$") { "file" } else { "directory" }
             New-Item -Path $fullPath -ItemType $type -Force | Out-Null
             Write-Host "Created $type at $fullPath"
         } else {
@@ -18,8 +18,6 @@ function Create-DirectoryStructure {
         }
     }
 }
-
-
 # Define the directory and file structure relative to $rootDir
 $paths = @(
     "catalog",
@@ -53,11 +51,14 @@ $paths = @(
     "orgs\org1\plat\prod",
     "orgs\org1\plat\prod\_defaults.yaml",
     "orgs\org1\plat\prod\global-region.yaml",
-    "orgs\org1\plat\prod\us-east-2.yaml"
+    "orgs\org1\plat\prod\us-east-2.yaml",
+    "schemas\opa\catalog\constants\constants.rego",
+    "schemas\jsonschema\vpc\validate-vpc-component.json",
+    "schemas\opa\vpc\validate-vpc-component.rego"
 )
 
 # Create the directory structure
-# Create-DirectoryStructure -basePath $rootDir -paths $paths
+Create-DirectoryStructure -basePath $rootDir -paths $paths
 
 Write-Host "Directory structure created successfully."
 
@@ -81,4 +82,4 @@ function Find-EmptyYamlFiles {
         }
     }
 }
-Find-EmptyYamlFiles -basePath $rootDir 
+# Find-EmptyYamlFiles -basePath $rootDir 

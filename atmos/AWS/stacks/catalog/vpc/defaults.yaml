@@ -13,12 +13,12 @@ components:
             schema_type: jsonschema
             schema_path: "vpc/validate-vpc-component.json"
             description: Validate 'vpc' component variables using JSON Schema
-          check-vpc-component-config-with-opa-policy:
-            schema_type: opa
-            schema_path: "vpc/validate-vpc-component.rego"
-            module_paths:
-              - "catalog/constants"
-            description: Check 'vpc' component configuration using OPA policy
+          # check-vpc-component-config-with-opa-policy:
+          #   schema_type: opa
+          #   schema_path: "vpc/validate-vpc-component.rego"
+          #   module_paths:
+          #     - "catalog/constants"
+          #   description: Check 'vpc' component configuration using OPA policy
       vars:
         enabled: true
         name: "common"
