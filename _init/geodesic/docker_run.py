@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import json
+from typing import Optional,Dict
 
 # Third-party library imports
 from icecream import ic  # type: ignore
@@ -19,9 +20,12 @@ from docker_manager_class import execute_docker_class
 # Logger configuration
 logger.add("debug.log", format="{time} {level} {message}", level="DEBUG")
 
-def parse_cli_arguments():
+def parse_cli_arguments() -> argparse.Namespace:
+    """Parses command line arguments for Docker Manager."""
     parser = argparse.ArgumentParser(description='Run Docker Manager.')
-    parser.add_argument('--force-rebuild', action='store_true', help='Force a full rebuild of the Docker image.')
+    parser.add_argument('--force-rebuild', 
+                        action='store_true', 
+                        help='Force a full rebuild of the Docker image.')
     return parser.parse_args()
 
 def check_system_path_for_tool(tool_name: str) -> bool:
@@ -87,7 +91,7 @@ def set_aws_environment_variables():
         logger.error(f"AWS profile {aws_profile} is not active. Please check its configuration.")
         raise
 
-def get_docker_images_with_prefix(prefix: str) -> list:
+def get_docker_images_with_prefix_old(prefix: str) -> list:
     """Fetch Docker images that start with a given prefix and allow user to select an image with retries for wrong choices."""
     if not check_system_path_for_tool("docker"):
         raise Exception("Docker not found. Please install it.")
@@ -106,6 +110,25 @@ def get_docker_images_with_prefix(prefix: str) -> list:
         except (ValueError, IndexError):
             print("Invalid selection, please try again.")
 
+def get_docker_images_with_prefix(prefix: str) -> str:
+    """Fetch Docker images that start with a given prefix and return the selected image."""
+    if not check_system_path_for_tool("docker"):
+        raise Exception("Docker not found. Please install it.")
+    logger.info("Fetching Docker images...")
+    images = execute_subprocess(["docker", "images", "--format", "{{.Repository}}:{{.Tag}}"]).split('\n')
+    filtered_images = [image for image in images if image.startswith(prefix)]
+    if not filtered_images:
+        raise Exception(f"No Docker images found with prefix '{prefix}'.")
+
+    for i, item in enumerate(filtered_images):
+        print(f"{i+1}. {item}")
+    try:
+        selected = int(input("Select a Docker image by number: ")) - 1
+        return filtered_images[selected]
+    except (ValueError, IndexError):
+        print("Invalid selection, please try again.")
+        return get_docker_images_with_prefix(prefix)  # Recursively call until a valid selection is made
+
 def replace_local_env_variables_win(volume: str) -> str:
     """
     Replaces `$env:VAR_NAME` placeholders in the input string with the actual values of the corresponding
@@ -113,23 +136,60 @@ def replace_local_env_variables_win(volume: str) -> str:
     """
     return re.sub(r'\$env:([A-Za-z0-9_]+)', lambda match: os.environ.get(match.group(1), ''), volume)
 
+
+def run_docker_old(
+    volumes: list, 
+    container_name: Optional[str] = None, 
+    image_prefix: str = "geodesic", 
+    banner: str = "NLS-Geodesic"
+) -> None:
+    """Run a Docker container with specified volumes."""
+    logger.info("Running Docker...")
+    selected_image = get_docker_images_with_prefix(image_prefix)
+
+    container_name = container_name or selected_image.split(':')[0].replace('/', '_')
+
+    volumes = [replace_local_env_variables_win(volume) for volume in volumes]
+    volume_commands = [f"--volume {volume}" for volume in volumes]
+
+    docker_command = [
+        "docker", "run", "-it", "--rm", "--name", container_name,
+        "--env-file", "atmos.env.list",
+        "-e", f"BANNER={banner}",
+        "-e", f"AWS_PROFILE={os.environ['AWS_PROFILE']}",
+        "-e", f"AWS_DEFAULT_REGION={os.environ['AWS_DEFAULT_REGION']}",
+        "-e", "TERM=xterm-256color",  # provides color output in container.
+        *volume_commands, 
+        selected_image, 
+        "--login"
+    ]
+    logger.success(f"Executing Docker command: {' '.join(docker_command)}")
+    confirmation = input("Press Enter to run the Docker command or type 'no' to cancel: ").lower()
+    if not confirmation or confirmation == "yes":
+        subprocess.run(docker_command)
+        logger.info("Docker run completed.")
+    else:
+        logger.info("Docker command execution cancelled by user.")
+        
+        
 def run_docker(volumes: list, container_name=None, image_prefix="geodesic", banner="NLS-Geodesic"):
     """Run a Docker container with specified volumes."""
     logger.info("Running Docker...")
-    selected_image = select_from_list(get_docker_images_with_prefix(image_prefix), "Select a Docker image by number: ")
+    selected_image = get_docker_images_with_prefix(image_prefix)
+
     if container_name is None:
         container_name = selected_image.split(':')[0].replace('/', '_')
 
-    # Ensuring environment variables in volume paths are replaced before validation
     volumes = [replace_local_env_variables_win(volume) for volume in volumes]
     volume_commands = [item for volume in volumes for item in ["--volume", volume]]
 
     docker_command = [
         "docker", "run", "-it", "--rm", "--name", container_name,
-        "--env-file", "atmos.env.list",  # Add env file set to atmos.env.list
-        "-e", f"BANNER={banner}",  # Use banner variable
+        "--env-file", "atmos.env.list",
+        "-e", f"BANNER={banner}",
         "-e", "AWS_PROFILE=" + os.environ["AWS_PROFILE"],
-        "-e", "AWS_DEFAULT_REGION=" + os.environ["AWS_DEFAULT_REGION"]
+        "-e", "AWS_DEFAULT_REGION=" + os.environ["AWS_DEFAULT_REGION"],
+        "-e", "TERM=xterm-256color" # provides color output in container.
     ] + volume_commands + [selected_image, "--login"]
     logger.info("Executing Docker command: " + ' '.join(docker_command))
     confirmation = input("Press Enter to run the Docker command or type 'no' to cancel: ").lower()
@@ -165,7 +225,7 @@ if __name__ == "__main__":
     banner = config["environment"]["banner"]  # Set banner variable
     env_vars = config.get("environment_variables", {})  # Extract environment variables from config
 
-    execute_docker_class(docker_file, image_name)
+    execute_docker_class(docker_file, image_name, force_rebuild=args.force_rebuild)
     # execute_docker_class(docker_file, image_name, env_vars)
 
     set_aws_environment_variables()

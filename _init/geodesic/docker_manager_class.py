@@ -11,22 +11,29 @@ from loguru import logger
 import os
 import toml
 import json
-
+from typing import Optional,Dict,Any
 
 
 class DockerManager:
     """Class to manage Docker operations including building images and tracking changes in Dockerfiles."""
 
-    def __init__(self, docker_file, image_name, force_rebuild=False, env_vars=None):
-        """Initialize with the Dockerfile, image name, force rebuild flag, and environment variables."""
+    def __init__(
+        self, 
+        docker_file: str, 
+        image_name: str, 
+        force_rebuild: Optional[bool] = False, 
+        env_vars: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """Initialize DockerManager with Dockerfile, image name, force rebuild flag, and environment variables."""
         self.docker_file = docker_file
         self.image_name = image_name
         self.force_rebuild = force_rebuild
         self.env_vars = env_vars or {}
         self.hash_file = f"{docker_file}_hash"
 
-    def manage_docker_build(self):
-        """Manages the Docker build process based on the existence and comparison of Dockerfile hashes."""
+    def manage_docker_build(self) -> None:
+        """Manages the Docker build process based on Dockerfile changes."""
+        
         if self.has_dockerfile_changed() or self.force_rebuild:
             logger.info("Building or rebuilding Docker image.")
             self.build_docker_image()
@@ -34,7 +41,7 @@ class DockerManager:
         else:
             logger.info("No changes detected in Dockerfile. No action needed.")
 
-    def build_docker_image(self):
+    def build_docker_image(self) -> bool:
         """Builds a Docker image from the initialized Dockerfile, including environment variables."""
         logger.info("Building Docker image...")
         try:
@@ -47,8 +54,16 @@ class DockerManager:
             build_command.append('.')
             subprocess.run(build_command, check=True)
             logger.success("Docker image built successfully.")
+            return True
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to build Docker image: {e}")
+            proceed = input("Enter for yes, Ctrl-c for no: ")
+            if proceed == '':
+                logger.info("Proceeding with the last known good image.")
+                return True
+            else:
+                logger.info("Stopping the script.")
+                return False
             
     def create_dockerfile_hash(self):
         """Creates a hash of the Dockerfile and stores it in a separate hash file."""
@@ -78,17 +93,27 @@ class DockerManager:
             return True  # Assume change if there's an error reading the files
 
 
-def execute_docker_class(docker_file, image_name, force_rebuild=False, env_vars=None):
-    """Executes Docker build management with environment variables."""
+def execute_docker_class(
+    docker_file: str, 
+    image_name: str, 
+    force_rebuild: bool = False, 
+    env_vars: Optional[Dict[str, str]] = None
+) -> None:
+    """Execute Docker build management with environment variables."""
+    
     docker_manager = DockerManager(docker_file, image_name, force_rebuild, env_vars)
     docker_manager.manage_docker_build()
     
-def run_docker_manager(config):
-    """Runs the Docker manager with configuration."""
-    docker_file = config["docker_manager"]["docker_file"]
-    image_name = config["docker_manager"]["image_name"]
-    execute_docker_class(docker_file, image_name)
-
+def run_docker_manager(
+    config: Dict[str, Any]
+    ) -> None:
+    """Executes Docker manager with configuration."""
+    docker_file = config.get("docker_manager", {}).get("docker_file")
+    image_name = config.get("docker_manager", {}).get("image_name")
+    if docker_file and image_name:
+        execute_docker_class(docker_file, image_name)
+    else:
+        logger.error("Docker file or image name not found in configuration.")
 
 if __name__ == "__main__":
     config = toml.load("atmos.toml")

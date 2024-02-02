@@ -4,7 +4,7 @@ container_path = "/localhost"
 
 [[run_docker.volume_bindings]]
 local_path = "C:\\DHE\\git\\nls-infra\\root_git\\atmos\\AWS"
-container_path = "/_repotest"
+container_path = "/repotest"
 
 
 [docker_manager]

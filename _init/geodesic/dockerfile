@@ -1,3 +1,6 @@
+# Change REVISION for full image rebuild
+ARG REVISION=2024-xxxx
+
 ARG VERSION=2.0.0
 ARG OS=debian
 FROM cloudposse/geodesic:latest-debian
@@ -5,34 +8,46 @@ FROM cloudposse/geodesic:latest-debian
 
 # https://go.dev/dl/
 ARG GO_VERSION=1.21.6
+
 # https://github.com/cloudposse/atmos/releases
 ARG ATMOS_VERSION=v1.56.1
+
+# Terraform: https://github.com/hashicorp/terraform/releases
+ARG TF_VERSION=1.7.1
+
 
 # Install prerequisites
 RUN apt-get update
 RUN apt-get install -y jq
 RUN apt-get install -y wget
+
+
 # System: Set TimeZone
 RUN sudo ln -sf /usr/share/zoneinfo/America/Denver /etc/localtime
 
 
-# ---- Install Go
-# Install Go
-RUN wget https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
-RUN rm go${GO_VERSION}.linux-amd64.tar.gz
+# Install specific version of Terraform
+ARG TF_VERSION
+RUN apt-get update && apt-get install -y -u --allow-downgrades \
+  terraform-1="${TF_VERSION}-*" && \
+  update-alternatives --set terraform /usr/share/terraform/1/bin/terraform
 
-# Set environment variables
-ENV GOROOT /usr/local/go
-ENV GOPATH /root/go
-ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
+# # ---- Install Go
+# # Install Go
+# RUN wget https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
+# RUN tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+# RUN rm go${GO_VERSION}.linux-amd64.tar.gz
+
+# # Set environment variables
+# ENV GOROOT /usr/local/go
+# ENV GOPATH /root/go
+# ENV PATH $GOPATH/bin:$GOROOT/bin:$PATH
 
 # Install Atmos
 RUN apt-get install atmos
 
 # Install Atmos completion commands
 RUN atmos completion bash
-
 
 # Step 1: Set a custom BANNER by changing the value of ENV BANNER in the Dockerfile.
 ARG BANNER
@@ -45,5 +60,9 @@ ENV AWS_PROFILE=${AWS_PROFILE:-"default-profile"}
 # Step 3: Set the AWS_DEFAULT_REGION by adding a new line: ENV AWS_DEFAULT_REGION="your-region"
 ARG AWS_DEFAULT_REGION
 ENV AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"default-region"}
+
+
+COPY rootfs/ /
+RUN chmod +x /etc/profile.d/functions.sh
 
 WORKDIR /
